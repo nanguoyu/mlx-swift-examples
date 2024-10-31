@@ -35,7 +35,8 @@ struct Bigram: Hashable {
 /// what exists there (at time of writing).
 class CLIPTokenizer {
 
-    let pattern = #"<\|startoftext\|>|<\|endoftext\|>|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+"#
+    let pattern = try! Regex(#"<\|startoftext\|>|<\|endoftext\|>|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+"#)
+
     let bpeRanks: [Bigram: Int]
     let vocabulary: [String: Int]
 
@@ -120,15 +121,11 @@ class CLIPTokenizer {
         // a much more thorough job here but this should suffice for 95% of
         // cases.
 
-        let clean = text.lowercased().replacing(#/\s+/#, with: " ")
-        let tokens = clean.matches(of: pattern).map { $0.description }
-
-        // Split the tokens according to the byte-pair merge file
-        let bpeTokens = tokens.flatMap { bpe(text: String($0)) }
-
-        // Map to token ids and return
+        let clean = text.lowercased().replacing(try! Regex(#"\s+"#), with: " ")
+        let regex = try! Regex(#"<\|startoftext\|>|<\|endoftext\|>|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+"#)
+        let tokens = clean.matches(of: regex).map { String($0.0) }
+    let bpeTokens = tokens.flatMap { bpe(text: String($0)) }
         let result = [bosToken] + bpeTokens.compactMap { vocabulary[$0] } + [eosToken]
-
         return result.map { Int32($0) }
     }
 }
