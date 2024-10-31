@@ -121,7 +121,7 @@ class CLIPTokenizer {
         // a much more thorough job here but this should suffice for 95% of
         // cases.
 
-        let clean = text.lowercased().replacing(try! Regex(#"\s+"#), with: " ")
+        let clean = text.lowercased().components(separatedBy: .whitespaces).filter { !$0.isEmpty }.joined(separator: " ")
         let regex = try! Regex(#"<\|startoftext\|>|<\|endoftext\|>|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+"#)
         let tokens = clean.matches(of: regex).map { String($0.0) }
     let bpeTokens = tokens.flatMap { bpe(text: String($0)) }
